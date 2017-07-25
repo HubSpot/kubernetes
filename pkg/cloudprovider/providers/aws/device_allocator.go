@@ -74,13 +74,14 @@ func (p devicePairList) Len() int           { return len(p) }
 func (p devicePairList) Less(i, j int) bool { return p[i].deviceIndex < p[j].deviceIndex }
 func (p devicePairList) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
-// Allocates device names according to scheme ba..bz, ca..cz
+// Allocates device names according to scheme aa..az, ba..bz, ca..cz, da..dx
 // it moves along the ring and always picks next device until
 // device list is exhausted.
 func NewDeviceAllocator() DeviceAllocator {
 	possibleDevices := make(map[mountDevice]int)
-	for _, firstChar := range []rune{'b', 'c'} {
-		for i := 'a'; i <= 'z'; i++ {
+	for _, firstChar := range []rune{'a', 'b', 'c', 'd'} {
+		// skip 'y, z' for the 'd' range
+		for i := 'a'; (firstChar < 'd' && i <= 'z') || i < 'y'; i++ {
 			dev := mountDevice([]rune{firstChar, i})
 			possibleDevices[dev] = 0
 		}

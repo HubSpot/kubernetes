@@ -627,6 +627,10 @@ function kube::build::start_rsyncd_container() {
   local container_ip
   container_ip=$("${DOCKER[@]}" inspect --format '{{ .NetworkSettings.IPAddress }}' "${KUBE_RSYNC_CONTAINER_NAME}")
 
+  # added by tpetr for Blazar
+  iptables -I OUTPUT -o eth0 -d $container_ip -j ACCEPT
+  echo "ran: iptables -I OUTPUT -o eth0 -d $container_ip -j ACCEPT"
+
   # Sometimes we can reach rsync through localhost and a NAT'd port.  Other
   # times (when we are running in another docker container on the Jenkins
   # machines) we have to talk directly to the container IP.  There is no one

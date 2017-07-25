@@ -1,0 +1,26 @@
+enabled: true
+
+env:
+  KUBE_VERSION: 1.7.3
+  DOCKER_USER: hubspot
+  DOCKER_HOST: unix:///var/run/host-docker.sock
+
+user: root
+
+steps:
+  - name: build
+    description: Build Kubernetes
+    commands:
+      - build/run.sh make
+  - name: docker
+    description: Build and push Hyperkube image
+    commands:
+      - |
+        cd cluster/images/hyperkube
+        export REGISTRY=docker.hubteam.com/kubernetes
+        export ARCH=amd64
+        export VERSION=$KUBE_VERSION-$GIT_BRANCH-$MODULE_BUILD_NUMBER
+        export IMAGE_NAME=hyperkube-${ARCH}
+        make build VERSION=${VERSION} ARCH=${ARCH}
+        docker push ${REGISTRY}/${IMAGE_NAME}:${VERSION}
+        echo "Pushed docker image ${REGISTRY}/${IMAGE_NAME}:${VERSION}"
