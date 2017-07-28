@@ -64,7 +64,7 @@ func (ir *imageRegexp) Admit(attributes admission.Attributes) (err error) {
 func NewImageRegexp(config io.Reader) (admission.Interface, error) {
 	var ac AdmissionConfig
 	d := yaml.NewYAMLOrJSONDecoder(config, 4096)
-	err := d.Decode(&config)
+	err := d.Decode(&ac)
 	if err != nil {
 		return nil, err
 	}
