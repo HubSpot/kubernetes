@@ -73,17 +73,20 @@ func NewImageRegexp(config io.Reader) (admission.Interface, error) {
 
 	// compile the regexp(s), bail early if compilation fails
 	for i := range ac.ImageRegexpConfigs {
-		item := ac.ImageRegexpConfigs[i]
+		configItem := ac.ImageRegexpConfigs[i]
 
-		regexp, err := regexp.Compile(item.Regexp)
+		regexp, err := regexp.Compile(configItem.Regexp)
 
 		if err != nil {
 			return nil, err
 		}
 
-		glog.V(2).Infof("Compiled ImageRegexpConfig %s", item)
+		glog.V(2).Infof("Compiled ImageRegexpConfig %s", configItem)
 
-		items = append(items, imageRegexReplacement{Regexp: regexp, Replacement: item.Replacement})
+		items[i] = imageRegexReplacement{
+			Regexp: regexp,
+			Replacement: configItem.Replacement,
+		}
 	}
 
 	return &imageRegexp{
