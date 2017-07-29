@@ -15,7 +15,11 @@ import (
 
 func init() {
 	admission.RegisterPlugin("ImageRegexp", func(config io.Reader) (admission.Interface, error) {
-		return NewImageRegexp(config)
+		newImageRegexp, err := NewImageRegexp(config)
+		if err != nil {
+			return nil, err
+		}
+		return newImageRegexp, nil
 	})
 }
 

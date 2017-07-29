@@ -9,11 +9,7 @@ import (
 	"k8s.io/apiserver/pkg/authentication/user"
 )
 
-const ImageRegexpConfigYAML = `
-imageRegexp:
-- regexp: "^(.*?):deployed$"
-  replacement: "$1:deployed-test"
-`
+const ImageRegexpConfigYAML = `{"imageRegexp":[{"regexp":"^(.*?):deployed$","replacement":"$1:deployed-test"}]}`
 
 const ReplacementSuffix = ":deployed-test"
 
