@@ -19,7 +19,7 @@ steps:
         cd cluster/images/hyperkube
         export REGISTRY=docker.hubteam.com/kubernetes
         export ARCH=amd64
-        export VERSION=$KUBE_VERSION-hs-$MODULE_BUILD_NUMBER
+        export VERSION=$KUBE_VERSION-$GIT_BRANCH-$MODULE_BUILD_NUMBER
         export IMAGE_NAME=hyperkube-${ARCH}
         make build VERSION=${VERSION} ARCH=${ARCH}
         docker push ${REGISTRY}/${IMAGE_NAME}:${VERSION}
