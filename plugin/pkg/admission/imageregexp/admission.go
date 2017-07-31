@@ -34,8 +34,8 @@ type imageRegexp struct {
 }
 
 func (ir *imageRegexp) handleContainer(container *api.Container) {
-	for i := range ir.Items {
-		container.Image = ir.Items[i].Regexp.ReplaceAllString(container.Image, ir.Items[i].Replacement)
+	for _, irr := range ir.Items {
+		container.Image = irr.Regexp.ReplaceAllString(container.Image, irr.Replacement)
 	}
 }
 
@@ -54,12 +54,12 @@ func (ir *imageRegexp) Admit(attributes admission.Attributes) (err error) {
 		return apierrors.NewBadRequest("Resource was marked with kind Pod but was unable to be converted")
 	}
 
-	for i := range pod.Spec.InitContainers {
-		ir.handleContainer(&pod.Spec.InitContainers[i])
+	for _, initContainer := range pod.Spec.InitContainers {
+		ir.handleContainer(&initContainer)
 	}
 
-	for i := range pod.Spec.Containers {
-		ir.handleContainer(&pod.Spec.Containers[i])
+	for _, container := range pod.Spec.Containers {
+		ir.handleContainer(&container)
 	}
 
 	return nil
@@ -76,9 +76,7 @@ func NewImageRegexp(config io.Reader) (admission.Interface, error) {
 	items := make([]imageRegexReplacement, len(ac.ImageRegexpConfigs))
 
 	// compile the regexp(s), bail early if compilation fails
-	for i := range ac.ImageRegexpConfigs {
-		configItem := ac.ImageRegexpConfigs[i]
-
+	for i, configItem := range ac.ImageRegexpConfigs {
 		regexp, err := regexp.Compile(configItem.Regexp)
 
 		if err != nil {
