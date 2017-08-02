@@ -52,7 +52,7 @@ type deviceAllocator struct {
 // device list is exhausted.
 func NewDeviceAllocator(lastIndex int) DeviceAllocator {
 	possibleDevices := []mountDevice{}
-	for _, firstChar := range []rune{'b', 'c'} {
+	for _, firstChar := range []rune{'a', 'b', 'c'} {
 		for i := 'a'; i <= 'z'; i++ {
 			dev := mountDevice([]rune{firstChar, i})
 			possibleDevices = append(possibleDevices, dev)
