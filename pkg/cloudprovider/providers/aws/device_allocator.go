@@ -50,10 +50,15 @@ type deviceAllocator struct {
 // Allocates device names according to scheme ba..bz, ca..cz
 // it moves along the ring and always picks next device until
 // device list is exhausted.
+// Patch: now includes 'aa' all the way to 'dy'
 func NewDeviceAllocator(lastIndex int) DeviceAllocator {
 	possibleDevices := []mountDevice{}
-	for _, firstChar := range []rune{'a', 'b', 'c'} {
+	for _, firstChar := range []rune{'a', 'b', 'c', 'd'} {
 		for i := 'a'; i <= 'z'; i++ {
+			if firstChar == 'd' && i == 'z' {
+				continue; // skip 'z' for the 'd' range
+			}
+
 			dev := mountDevice([]rune{firstChar, i})
 			possibleDevices = append(possibleDevices, dev)
 		}
