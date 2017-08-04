@@ -56,7 +56,7 @@ func NewDeviceAllocator(lastIndex int) DeviceAllocator {
 	for _, firstChar := range []rune{'a', 'b', 'c', 'd'} {
 		for i := 'a'; i <= 'z'; i++ {
 			if firstChar == 'd' && i > 'x' {
-				continue; // skip 'y,z' for the 'd' range
+				break // skip 'y,z' for the 'd' range
 			}
 
 			dev := mountDevice([]rune{firstChar, i})
