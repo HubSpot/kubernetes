@@ -54,11 +54,8 @@ type deviceAllocator struct {
 func NewDeviceAllocator(lastIndex int) DeviceAllocator {
 	possibleDevices := []mountDevice{}
 	for _, firstChar := range []rune{'a', 'b', 'c', 'd'} {
-		for i := 'a'; i <= 'z'; i++ {
-			if firstChar == 'd' && i > 'x' {
-				break // skip 'y,z' for the 'd' range
-			}
-
+		// skip 'y, z' for the 'd' range
+		for i := 'a'; (firstChar < 'd' && i <= 'z') || i < 'y'; i++ {
 			dev := mountDevice([]rune{firstChar, i})
 			possibleDevices = append(possibleDevices, dev)
 		}
