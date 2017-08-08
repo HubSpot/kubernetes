@@ -55,25 +55,25 @@ func resolveDockerTag(registryHost string, imageName string, tagName string) (st
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return nil, fmt.Errorf("Error requesting manfiest (%s): %s", url, err)
+		return "", fmt.Errorf("Error requesting manfiest (%s): %s", url, err)
 	}
 
 	req.Header.Set("Accept", "application/vnd.docker.distribution.manifest.v2+json")
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("Error requesting manfiest (%s): %s", url, err)
+		return "", fmt.Errorf("Error requesting manfiest (%s): %s", url, err)
 	}
 
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("Error requesting manfiest (%s): %s", url, err)
+		return "", fmt.Errorf("Error requesting manfiest (%s): %s", url, err)
 	}
 
 	deserialized := new(dockerManifest)
 	if err := json.Unmarshal(body, deserialized); err != nil {
-		return nil, fmt.Errorf("Error requesting manifest (%s): %s", url, err)
+		return "", fmt.Errorf("Error requesting manifest (%s): %s", url, err)
 	}
 
 	return deserialized.Config.Digest, nil
