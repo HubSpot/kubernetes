@@ -32,9 +32,8 @@ func Register(plugins *admission.Plugins) {
 }
 
 type imageRegexReplacement struct {
-	Regexp           *regexp.Regexp
-	Replacement      string
-	ResolveDockerTag bool
+	CompiledRegexp *regexp.Regexp
+	Config         *imageRegexpConfig
 }
 
 type imageRegexp struct {
@@ -81,11 +80,11 @@ func resolveDockerTag(registryHost string, imageName string, tagName string) (st
 
 func (ir *imageRegexp) handleContainer(container *v1.Container) error {
 	for _, irr := range ir.Items {
-		if len(irr.Replacement) > 0 {
-			container.Image = irr.Regexp.ReplaceAllString(container.Image, irr.Replacement)
+		if len(irr.Config.Replacement) > 0 {
+			container.Image = irr.CompiledRegexp.ReplaceAllString(container.Image, irr.Config.Replacement)
 		}
 
-		if irr.ResolveDockerTag {
+		if irr.Config.ResolveTag {
 			matches := DockerImageRegex.FindStringSubmatch(container.Image)
 
 			if matches == nil {
@@ -182,7 +181,7 @@ func NewImageRegexp(config io.Reader) (admission.Interface, error) {
 	d := yaml.NewYAMLOrJSONDecoder(config, 4096)
 	err := d.Decode(&ac)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Error decoding AdmissionConfig for ImageRegexp: %s", err)
 	}
 
 	items := make([]imageRegexReplacement, len(ac.ImageRegexpConfigs))
@@ -192,14 +191,14 @@ func NewImageRegexp(config io.Reader) (admission.Interface, error) {
 		regexp, err := regexp.Compile(configItem.Regexp)
 
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Error compiling regexp for %s: %s", configItem, err)
 		}
 
 		glog.V(2).Infof("Compiled ImageRegexpConfig %s", configItem)
 
 		items[i] = imageRegexReplacement{
-			Regexp:      regexp,
-			Replacement: configItem.Replacement,
+			CompiledRegexp: regexp,
+			Config:         &configItem,
 		}
 	}
 
