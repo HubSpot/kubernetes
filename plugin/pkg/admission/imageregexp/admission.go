@@ -5,6 +5,7 @@ import (
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apiserver/pkg/admission"
+	"k8s.io/kubernetes/pkg/api"
 
 	"k8s.io/apimachinery/pkg/util/yaml"
 	"regexp"
@@ -14,8 +15,7 @@ import (
 	"github.com/golang/glog"
 	"io/ioutil"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/kubernetes/pkg/api/v1"
-	"k8s.io/kubernetes/pkg/apis/extensions/v1beta1"
+	"k8s.io/kubernetes/pkg/apis/extensions"
 	"net/http"
 )
 
@@ -78,7 +78,7 @@ func resolveDockerTag(registryHost string, imageName string, tagName string) (st
 	return deserialized.Config.Digest, nil
 }
 
-func (ir *imageRegexp) handleContainer(container *v1.Container) error {
+func (ir *imageRegexp) handleContainer(container *api.Container) error {
 	for _, irr := range ir.Items {
 		if len(irr.Config.Replacement) > 0 {
 			container.Image = irr.CompiledRegexp.ReplaceAllString(container.Image, irr.Config.Replacement)
@@ -108,7 +108,7 @@ func (ir *imageRegexp) handleContainer(container *v1.Container) error {
 	return nil
 }
 
-func (ir *imageRegexp) handlePodSpec(podSpec *v1.PodSpec) error {
+func (ir *imageRegexp) handlePodSpec(podSpec *api.PodSpec) error {
 	for _, initContainer := range podSpec.InitContainers {
 		if err := ir.handleContainer(&initContainer); err != nil {
 			return fmt.Errorf("Error handling InitContainer '%s': %s", initContainer.Name, err)
@@ -124,8 +124,8 @@ func (ir *imageRegexp) handlePodSpec(podSpec *v1.PodSpec) error {
 	return nil
 }
 
-func buildBadRequestUnableToConvert(obj runtime.Object) error {
-	return apierrors.NewBadRequest(fmt.Sprintf("Resource was marked with kind '%s' but was unable to be converted", obj.GetObjectKind().GroupVersionKind().Kind))
+func buildBadRequestUnableToConvert(attr admission.Attributes) error {
+	return apierrors.NewBadRequest(fmt.Sprintf("Resource type '%s' was unable to be converted", attr.GetResource().Resource))
 }
 
 func buildKindError(obj runtime.Object, name string, err error) error {
@@ -140,33 +140,33 @@ func (ir *imageRegexp) Admit(attributes admission.Attributes) (err error) {
 
 	switch attributes.GetResource().GroupResource().Resource {
 	case "pods":
-		pod, ok := attributes.GetObject().(*v1.Pod)
+		pod, ok := attributes.GetObject().(*api.Pod)
 		if !ok {
-			return buildBadRequestUnableToConvert(attributes.GetObject())
+			return buildBadRequestUnableToConvert(attributes)
 		}
 		if err := ir.handlePodSpec(&pod.Spec); err != nil {
 			return buildKindError(pod, pod.Name, err)
 		}
 	case "replicasets":
-		rs, ok := attributes.GetObject().(*v1beta1.ReplicaSet)
+		rs, ok := attributes.GetObject().(*extensions.ReplicaSet)
 		if !ok {
-			return buildBadRequestUnableToConvert(attributes.GetObject())
+			return buildBadRequestUnableToConvert(attributes)
 		}
 		if err := ir.handlePodSpec(&rs.Spec.Template.Spec); err != nil {
 			return buildKindError(rs, rs.Name, err)
 		}
 	case "deployments":
-		d, ok := attributes.GetObject().(*v1beta1.Deployment)
+		d, ok := attributes.GetObject().(*extensions.Deployment)
 		if !ok {
-			return buildBadRequestUnableToConvert(attributes.GetObject())
+			return buildBadRequestUnableToConvert(attributes)
 		}
 		if err := ir.handlePodSpec(&d.Spec.Template.Spec); err != nil {
 			return buildKindError(d, d.Name, err)
 		}
 	case "daemonsets":
-		ds, ok := attributes.GetObject().(*v1beta1.DaemonSet)
+		ds, ok := attributes.GetObject().(*extensions.DaemonSet)
 		if !ok {
-			return buildBadRequestUnableToConvert(attributes.GetObject())
+			return buildBadRequestUnableToConvert(attributes)
 		}
 		if err := ir.handlePodSpec(&ds.Spec.Template.Spec); err != nil {
 			return buildKindError(ds, ds.Name, err)
