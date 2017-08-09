@@ -14,7 +14,6 @@ import (
 	"fmt"
 	"github.com/golang/glog"
 	"io/ioutil"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/kubernetes/pkg/apis/extensions"
 	"net/http"
 )
@@ -50,7 +49,7 @@ type dockerManifest struct {
 }
 
 func resolveDockerTag(registryHost string, imageName string, tagName string) (string, error) {
-	url := fmt.Sprintf("%s/v2/%s/manifests/%s", registryHost, imageName, tagName)
+	url := fmt.Sprintf("https://%s/v2/%s/manifests/%s", registryHost, imageName, tagName)
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -83,7 +82,7 @@ func (ir *imageRegexp) handleContainer(container *api.Container) error {
 		if irr.CompiledRegexp.MatchString(container.Image) {
 			if len(irr.Config.Replacement) > 0 {
 				newImage := irr.CompiledRegexp.ReplaceAllString(container.Image, irr.Config.Replacement)
-				glog.V(2).Infof("Updating image from '%s' to '%s'", container.Image, newImage)
+				glog.V(2).Infof("Updated image from '%s' to '%s'", container.Image, newImage)
 				container.Image = newImage
 			}
 
@@ -99,7 +98,7 @@ func (ir *imageRegexp) handleContainer(container *api.Container) error {
 				resolvedTag, err := resolveDockerTag(registryHost, imageName, tagName)
 
 				if err != nil {
-					return fmt.Errorf("Failed to resolve docker tag for %s: %s", container.Image, err)
+					return fmt.Errorf("Failed to resolve docker tag for image '%s': %s", container.Image, err)
 				}
 
 				glog.V(2).Infof("Resolved image '%s' to Docker tag '%s'", container.Image, resolvedTag)
@@ -132,8 +131,8 @@ func buildBadRequestUnableToConvert(attr admission.Attributes) error {
 	return apierrors.NewBadRequest(fmt.Sprintf("Resource type '%s' was unable to be converted", attr.GetResource().Resource))
 }
 
-func buildKindError(obj runtime.Object, name string, err error) error {
-	return fmt.Errorf("Error handling %s '%s': %s", obj.GetObjectKind().GroupVersionKind().Kind, name, err)
+func buildKindError(name string, err error) error {
+	return fmt.Errorf("Error handling '%s': %s", name, err)
 }
 
 func (ir *imageRegexp) Admit(attributes admission.Attributes) (err error) {
@@ -149,7 +148,7 @@ func (ir *imageRegexp) Admit(attributes admission.Attributes) (err error) {
 			return buildBadRequestUnableToConvert(attributes)
 		}
 		if err := ir.handlePodSpec(&pod.Spec); err != nil {
-			return buildKindError(pod, pod.Name, err)
+			return buildKindError(pod.Name, err)
 		}
 	case "replicasets":
 		rs, ok := attributes.GetObject().(*extensions.ReplicaSet)
@@ -157,7 +156,7 @@ func (ir *imageRegexp) Admit(attributes admission.Attributes) (err error) {
 			return buildBadRequestUnableToConvert(attributes)
 		}
 		if err := ir.handlePodSpec(&rs.Spec.Template.Spec); err != nil {
-			return buildKindError(rs, rs.Name, err)
+			return buildKindError(rs.Name, err)
 		}
 	case "deployments":
 		d, ok := attributes.GetObject().(*extensions.Deployment)
@@ -165,7 +164,7 @@ func (ir *imageRegexp) Admit(attributes admission.Attributes) (err error) {
 			return buildBadRequestUnableToConvert(attributes)
 		}
 		if err := ir.handlePodSpec(&d.Spec.Template.Spec); err != nil {
-			return buildKindError(d, d.Name, err)
+			return buildKindError(d.Name, err)
 		}
 	case "daemonsets":
 		ds, ok := attributes.GetObject().(*extensions.DaemonSet)
@@ -173,7 +172,7 @@ func (ir *imageRegexp) Admit(attributes admission.Attributes) (err error) {
 			return buildBadRequestUnableToConvert(attributes)
 		}
 		if err := ir.handlePodSpec(&ds.Spec.Template.Spec); err != nil {
-			return buildKindError(ds, ds.Name, err)
+			return buildKindError(ds.Name, err)
 		}
 	}
 
