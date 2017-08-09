@@ -93,7 +93,7 @@ func (ir *imageRegexp) handleContainer(container *api.Container) error {
 					return fmt.Errorf("Docker image name regexp failed for '%s'", container.Image)
 				}
 
-				registryHost, imageName, tagName := matches[0], matches[1], matches[2]
+				registryHost, imageName, tagName := matches[1], matches[2], matches[3]
 
 				resolvedTag, err := resolveDockerTag(registryHost, imageName, tagName)
 
