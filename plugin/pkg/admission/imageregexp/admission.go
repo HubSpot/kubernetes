@@ -80,28 +80,32 @@ func resolveDockerTag(registryHost string, imageName string, tagName string) (st
 
 func (ir *imageRegexp) handleContainer(container *api.Container) error {
 	for _, irr := range ir.Items {
-		if len(irr.Config.Replacement) > 0 {
-			container.Image = irr.CompiledRegexp.ReplaceAllString(container.Image, irr.Config.Replacement)
-		}
-
-		if irr.Config.ResolveTag {
-			matches := DockerImageRegex.FindStringSubmatch(container.Image)
-
-			if matches == nil {
-				return fmt.Errorf("Docker image name regexp failed for '%s'", container.Image)
+		if irr.CompiledRegexp.MatchString(container.Image) {
+			if len(irr.Config.Replacement) > 0 {
+				newImage := irr.CompiledRegexp.ReplaceAllString(container.Image, irr.Config.Replacement)
+				glog.V(2).Infof("Updating image from '%s' to '%s'", container.Image, newImage)
+				container.Image = newImage
 			}
 
-			registryHost, imageName, tagName := matches[0], matches[1], matches[2]
+			if irr.Config.ResolveTag {
+				matches := DockerImageRegex.FindStringSubmatch(container.Image)
 
-			resolvedTag, err := resolveDockerTag(registryHost, imageName, tagName)
+				if matches == nil {
+					return fmt.Errorf("Docker image name regexp failed for '%s'", container.Image)
+				}
 
-			if err != nil {
-				return fmt.Errorf("Failed to resolve docker tag for %s: %s", container.Image, err)
+				registryHost, imageName, tagName := matches[0], matches[1], matches[2]
+
+				resolvedTag, err := resolveDockerTag(registryHost, imageName, tagName)
+
+				if err != nil {
+					return fmt.Errorf("Failed to resolve docker tag for %s: %s", container.Image, err)
+				}
+
+				glog.V(2).Infof("Resolved image '%s' to Docker tag '%s'", container.Image, resolvedTag)
+
+				container.Image = fmt.Sprintf("%s%s:%s", registryHost, imageName, resolvedTag)
 			}
-
-			glog.V(2).Infof("Resolved %s to Docker tag %s", container.Image, resolvedTag)
-
-			container.Image = fmt.Sprintf("%s%s:%s", registryHost, imageName, resolvedTag)
 		}
 	}
 
