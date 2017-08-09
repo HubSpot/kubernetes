@@ -149,7 +149,7 @@ func (ir *imageRegexp) Admit(attributes admission.Attributes) (err error) {
 			return buildKindError(pod, pod.Name, err)
 		}
 	case "replicasets":
-		rs, ok := attributes.GetObject().(v1beta1.ReplicaSet)
+		rs, ok := attributes.GetObject().(*v1beta1.ReplicaSet)
 		if !ok {
 			return buildBadRequestUnableToConvert(attributes.GetObject())
 		}
@@ -157,7 +157,7 @@ func (ir *imageRegexp) Admit(attributes admission.Attributes) (err error) {
 			return buildKindError(rs, rs.Name, err)
 		}
 	case "deployments":
-		d, ok := attributes.GetObject().(v1beta1.Deployment)
+		d, ok := attributes.GetObject().(*v1beta1.Deployment)
 		if !ok {
 			return buildBadRequestUnableToConvert(attributes.GetObject())
 		}
