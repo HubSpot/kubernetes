@@ -112,14 +112,16 @@ func (ir *imageRegexp) handleContainer(container *api.Container) error {
 }
 
 func (ir *imageRegexp) handlePodSpec(podSpec *api.PodSpec) error {
-	for _, initContainer := range podSpec.InitContainers {
-		if err := ir.handleContainer(&initContainer); err != nil {
+	for i := range podSpec.InitContainers {
+		initContainer := &podSpec.InitContainers[i]
+		if err := ir.handleContainer(initContainer); err != nil {
 			return fmt.Errorf("Error handling InitContainer '%s': %s", initContainer.Name, err)
 		}
 	}
 
-	for _, container := range podSpec.Containers {
-		if err := ir.handleContainer(&container); err != nil {
+	for i := range podSpec.Containers {
+		container := &podSpec.Containers[i]
+		if err := ir.handleContainer(container); err != nil {
 			return fmt.Errorf("Error handling Container '%s': %s", container.Name, err)
 		}
 	}
