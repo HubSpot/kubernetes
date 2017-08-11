@@ -10,10 +10,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/yaml"
 	"regexp"
 
-	"encoding/json"
 	"fmt"
 	"github.com/golang/glog"
-	"io/ioutil"
 	"k8s.io/kubernetes/pkg/apis/extensions"
 	"net/http"
 	"strings"
