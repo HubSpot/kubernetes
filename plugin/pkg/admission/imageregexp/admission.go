@@ -16,6 +16,7 @@ import (
 	"io/ioutil"
 	"k8s.io/kubernetes/pkg/apis/extensions"
 	"net/http"
+	"strings"
 )
 
 var DockerImageRegex = regexp.MustCompile("^(.*?)/(.*?):([^:]+)$")
@@ -40,23 +41,13 @@ type imageRegexp struct {
 	Items []imageRegexReplacement
 }
 
-type dockerConfig struct {
-	Digest string `json:digest`
-}
-
-type dockerManifest struct {
-	Config dockerConfig `json:config`
-}
-
 func resolveDockerTag(registryHost string, imageName string, tagName string) (string, error) {
 	url := fmt.Sprintf("https://%s/v2/%s/manifests/%s", registryHost, imageName, tagName)
 
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest("HEAD", url, nil)
 	if err != nil {
 		return "", fmt.Errorf("Error requesting manfiest (%s): %s", url, err)
 	}
-
-	req.Header.Set("Accept", "application/vnd.docker.distribution.manifest.v2+json")
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -64,17 +55,14 @@ func resolveDockerTag(registryHost string, imageName string, tagName string) (st
 	}
 
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", fmt.Errorf("Error requesting manfiest (%s): %s", url, err)
+
+	dockerContentDigest := resp.Header.Get("Docker-Content-Digest")
+
+	if !strings.HasPrefix(dockerContentDigest, "sha256:") {
+		return nil, fmt.Errorf("Invalid Docker-Content-Digest header: %s", dockerContentDigest)
 	}
 
-	deserialized := new(dockerManifest)
-	if err := json.Unmarshal(body, deserialized); err != nil {
-		return "", fmt.Errorf("Error requesting manifest (%s): %s", url, err)
-	}
-
-	return deserialized.Config.Digest, nil
+	return dockerContentDigest, nil
 }
 
 func (ir *imageRegexp) handleContainer(container *api.Container) error {
