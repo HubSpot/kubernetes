@@ -57,7 +57,7 @@ func resolveDockerTag(registryHost string, imageName string, tagName string) (st
 	dockerContentDigest := resp.Header.Get("Docker-Content-Digest")
 
 	if !strings.HasPrefix(dockerContentDigest, "sha256:") {
-		return nil, fmt.Errorf("Invalid Docker-Content-Digest header: %s", dockerContentDigest)
+		return dockerContentDigest, fmt.Errorf("Invalid Docker-Content-Digest header: %s", dockerContentDigest)
 	}
 
 	return dockerContentDigest, nil
