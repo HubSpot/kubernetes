@@ -142,6 +142,11 @@ func (ir *imageRegexp) Admit(attributes admission.Attributes) (err error) {
 		return nil
 	}
 
+	// dont mess with subresources
+	if len(attributes.GetSubresource()) != 0 {
+		return nil
+	}
+
 	switch attributes.GetResource().GroupResource().Resource {
 	case "pods":
 		pod, ok := attributes.GetObject().(*api.Pod)
