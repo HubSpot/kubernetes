@@ -128,6 +128,7 @@ func (ir *imageRegexp) handlePodSpec(podSpec *api.PodSpec) error {
 }
 
 func buildBadRequestUnableToConvert(attr admission.Attributes) error {
+	glog.V(2).Infof("Resource type '%s' was unable to be converted: %s", attr.GetResource().Resource, attr.GetObject())
 	return apierrors.NewBadRequest(fmt.Sprintf("Resource type '%s' was unable to be converted", attr.GetResource().Resource))
 }
 
