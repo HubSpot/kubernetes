@@ -95,15 +95,15 @@ func (ir *imageRegexp) handleContainer(container *api.Container) error {
 
 				registryHost, imageName, tagName := matches[1], matches[2], matches[3]
 
-				resolvedTag, err := resolveDockerTag(registryHost, imageName, tagName)
+				resolvedDigest, err := resolveDockerTag(registryHost, imageName, tagName)
 
 				if err != nil {
 					return fmt.Errorf("Failed to resolve docker tag for image '%s': %s", container.Image, err)
 				}
 
-				glog.V(2).Infof("Resolved image '%s' to Docker tag '%s'", container.Image, resolvedTag)
+				glog.V(2).Infof("Resolved image '%s' to Docker digest '%s'", container.Image, resolvedDigest)
 
-				container.Image = fmt.Sprintf("%s%s:%s", registryHost, imageName, resolvedTag)
+				container.Image = fmt.Sprintf("%s/%s@%s", registryHost, imageName, resolvedDigest)
 			}
 		}
 	}
