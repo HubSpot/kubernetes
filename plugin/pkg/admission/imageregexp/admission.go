@@ -47,6 +47,8 @@ func resolveDockerTag(registryHost string, imageName string, tagName string) (st
 		return "", fmt.Errorf("Error requesting manfiest (%s): %s", url, err)
 	}
 
+	req.Header.Add("Accept", "application/vnd.docker.distribution.manifest.v2+json")
+
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return "", fmt.Errorf("Error requesting manfiest (%s): %s", url, err)
