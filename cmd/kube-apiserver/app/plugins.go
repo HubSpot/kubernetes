@@ -46,4 +46,5 @@ import (
 	_ "k8s.io/kubernetes/plugin/pkg/admission/serviceaccount"
 	_ "k8s.io/kubernetes/plugin/pkg/admission/storageclass/default"
 	_ "k8s.io/kubernetes/plugin/pkg/admission/imageregexp"
+	_ "k8s.io/kubernetes/plugin/pkg/admission/ssfixup"
 )
