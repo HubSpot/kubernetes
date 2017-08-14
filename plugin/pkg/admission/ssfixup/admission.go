@@ -14,8 +14,6 @@ func init() {
 	})
 }
 
-// alwaysPullImages is an implementation of admission.Interface.
-// It looks at all new pods and overrides each container's image pull policy to Always.
 type ssFixup struct {
 	*admission.Handler
 }
@@ -30,11 +28,11 @@ func (ssf *ssFixup) Admit(attributes admission.Attributes) (err error) {
 		return apierrors.NewBadRequest("Resource was marked with kind Pod but was unable to be converted")
 	}
 
-	if value, ok := pod.Annotations[podapi.PodHostnameAnnotation]; ok {
+	if value, ok := pod.Annotations[podapi.PodHostnameAnnotation]; ok && pod.Spec.Hostname == "" {
 		pod.Spec.Hostname = value
 	}
 
-	if value, ok := pod.Annotations[podapi.PodSubdomainAnnotation]; ok {
+	if value, ok := pod.Annotations[podapi.PodSubdomainAnnotation]; ok && pod.Spec.Subdomain == "" {
 		pod.Spec.Subdomain = value
 	}
 
