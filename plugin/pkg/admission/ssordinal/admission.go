@@ -33,7 +33,7 @@ func (sso *ssOrdinal) Admit(attributes admission.Attributes) error {
 		ownerRef := pod.OwnerReferences[i]
 
 		if ownerRef.Kind == "StatefulSet" && strings.HasPrefix(pod.Name, ownerRef.Name) {
-			pod.Labels["hubspot.com/ss-ordinal"] = pod.Name[len(ownerRef.Name):]
+			pod.Labels["hubspot.com/ss-ordinal"] = pod.Name[len(ownerRef.Name)+1:]
 		}
 	}
 
