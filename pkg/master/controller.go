@@ -73,6 +73,8 @@ type Controller struct {
 	PublicServicePort         int
 	KubernetesServiceNodePort int
 
+	SkipKubernetesService     bool
+
 	runner *async.Runner
 }
 
@@ -104,6 +106,7 @@ func (c *Config) NewBootstrapController(legacyRESTStorage corerest.LegacyRESTSto
 		ExtraEndpointPorts:        c.ExtraEndpointPorts,
 		PublicServicePort:         c.GenericConfig.ReadWritePort,
 		KubernetesServiceNodePort: c.KubernetesServiceNodePort,
+		SkipKubernetesService:     c.SkipKubernetesService,
 	}
 }
 
@@ -174,13 +177,15 @@ func (c *Controller) UpdateKubernetesService(reconcile bool) error {
 		return err
 	}
 
-	servicePorts, serviceType := createPortAndServiceSpec(c.ServicePort, c.PublicServicePort, c.KubernetesServiceNodePort, "https", c.ExtraServicePorts)
-	if err := c.CreateOrUpdateMasterServiceIfNeeded(kubernetesServiceName, c.ServiceIP, servicePorts, serviceType, reconcile); err != nil {
-		return err
-	}
-	endpointPorts := createEndpointPortSpec(c.PublicServicePort, "https", c.ExtraEndpointPorts)
-	if err := c.EndpointReconciler.ReconcileEndpoints(kubernetesServiceName, c.PublicIP, endpointPorts, reconcile); err != nil {
-		return err
+	if !c.SkipKubernetesService {
+		servicePorts, serviceType := createPortAndServiceSpec(c.ServicePort, c.PublicServicePort, c.KubernetesServiceNodePort, "https", c.ExtraServicePorts)
+		if err := c.CreateOrUpdateMasterServiceIfNeeded(kubernetesServiceName, c.ServiceIP, servicePorts, serviceType, reconcile); err != nil {
+			return err
+		}
+		endpointPorts := createEndpointPortSpec(c.PublicServicePort, "https", c.ExtraEndpointPorts)
+		if err := c.EndpointReconciler.ReconcileEndpoints(kubernetesServiceName, c.PublicIP, endpointPorts, reconcile); err != nil {
+			return err
+		}
 	}
 	return nil
 }

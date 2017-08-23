@@ -70,6 +70,7 @@ type ServerRunOptions struct {
 	ProxyClientKeyFile  string
 
 	EnableAggregatorRouting bool
+	SkipKubernetesService bool
 }
 
 // NewServerRunOptions creates a new ServerRunOptions object with default parameters
@@ -160,6 +161,9 @@ func (s *ServerRunOptions) AddFlags(fs *pflag.FlagSet) {
 
 	fs.IntVar(&s.MasterCount, "apiserver-count", s.MasterCount,
 		"The number of apiservers running in the cluster, must be a positive number.")
+
+	fs.BoolVar(&s.SkipKubernetesService, "skip-kubernetes-service", s.SkipKubernetesService,
+	"Skip registering this apiserver as part of the kubernetes service")
 
 	// See #14282 for details on how to test/try this option out.
 	// TODO: remove this comment once this option is tested in CI.

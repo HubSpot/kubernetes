@@ -321,6 +321,7 @@ func CreateKubeAPIServerConfig(s *options.ServerRunOptions, nodeTunneler tunnele
 		KubernetesServiceNodePort: s.KubernetesServiceNodePort,
 
 		MasterCount: s.MasterCount,
+		SkipKubernetesService: s.SkipKubernetesService,
 	}
 
 	if nodeTunneler != nil {
