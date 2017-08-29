@@ -44,6 +44,7 @@ import (
 	"k8s.io/kubernetes/plugin/pkg/admission/podnodeselector"
 	"k8s.io/kubernetes/plugin/pkg/admission/podpreset"
 	"k8s.io/kubernetes/plugin/pkg/admission/podtolerationrestriction"
+	"k8s.io/kubernetes/plugin/pkg/admission/requireresources"
 	"k8s.io/kubernetes/plugin/pkg/admission/resourcequota"
 	"k8s.io/kubernetes/plugin/pkg/admission/security/podsecuritypolicy"
 	"k8s.io/kubernetes/plugin/pkg/admission/securitycontext/scdeny"
@@ -74,6 +75,7 @@ func registerAllAdmissionPlugins(plugins *admission.Plugins) {
 	podnodeselector.Register(plugins)
 	podpreset.Register(plugins)
 	podtolerationrestriction.Register(plugins)
+	requireresources.Register(plugins)
 	resourcequota.Register(plugins)
 	podsecuritypolicy.Register(plugins)
 	scdeny.Register(plugins)
