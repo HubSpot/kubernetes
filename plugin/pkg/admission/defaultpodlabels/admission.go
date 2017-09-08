@@ -35,9 +35,10 @@ func (dpl *defaultPodLabels) handlePodLabel(pod *api.Pod, label LabelConfigItem)
 	}
 
 	if !label.SkipNamespace {
-		namespace, err := dpl.namespaceLister.Get(pod.Namespace)
+		podNamespace := pod.GetNamespace()
+		namespace, err := dpl.namespaceLister.Get(podNamespace)
 		if err != nil {
-			return fmt.Errorf("Error getting namespace '%s': %s", pod.Namespace, err)
+			return fmt.Errorf("Error getting namespace '%s': %s", podNamespace, err)
 		}
 
 		if val, ok := namespace.Labels[label.Name]; ok {
