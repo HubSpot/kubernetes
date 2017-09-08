@@ -29,16 +29,15 @@ func Register(plugins *admission.Plugins) {
 var _ = kubeapiserveradmission.WantsInternalKubeInformerFactory(&defaultPodLabels{})
 var _ = kubeapiserveradmission.WantsInternalKubeClientSet(&defaultPodLabels{})
 
-func (dpl *defaultPodLabels) handlePodLabel(pod *api.Pod, label LabelConfigItem) error {
+func (dpl *defaultPodLabels) handlePodLabel(namespaceName string, pod *api.Pod, label LabelConfigItem) error {
 	if _, ok := pod.Labels[label.Name]; ok {
 		return nil
 	}
 
 	if !label.SkipNamespace {
-		podNamespace := pod.GetNamespace()
-		namespace, err := dpl.namespaceLister.Get(podNamespace)
+		namespace, err := dpl.namespaceLister.Get(namespaceName)
 		if err != nil {
-			return fmt.Errorf("Error getting namespace '%s': %s", podNamespace, err)
+			return fmt.Errorf("Error getting namespace '%s': %s", namespaceName, err)
 		}
 
 		if val, ok := namespace.Labels[label.Name]; ok {
@@ -77,7 +76,7 @@ func (dpl *defaultPodLabels) Admit(attributes admission.Attributes) error {
 	}
 
 	for i := range dpl.Config.Labels {
-		if err := dpl.handlePodLabel(pod, dpl.Config.Labels[i]); err != nil {
+		if err := dpl.handlePodLabel(attributes.GetNamespace(), pod, dpl.Config.Labels[i]); err != nil {
 			return err
 		}
 	}
