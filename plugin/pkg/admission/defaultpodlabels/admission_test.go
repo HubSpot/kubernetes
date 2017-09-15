@@ -153,4 +153,14 @@ func TestItemDefault(t *testing.T) {
 		return
 	}
 
+	// test nil labels
+	expectedLabels = map[string]string{
+		"label1": "namespace-default1",
+		"label2": "namespace-default2",
+		"label3": "config-default3",
+	}
+	if err := testPod(handler, "test", nil, expectedLabels); err != nil {
+		t.Errorf("Error testing without namespace default: %s", err)
+		return
+	}
 }
