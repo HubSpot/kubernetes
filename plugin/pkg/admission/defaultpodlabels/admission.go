@@ -30,6 +30,10 @@ var _ = kubeapiserveradmission.WantsInternalKubeInformerFactory(&defaultPodLabel
 var _ = kubeapiserveradmission.WantsInternalKubeClientSet(&defaultPodLabels{})
 
 func (dpl *defaultPodLabels) handlePodLabel(namespaceName string, pod *api.Pod, label LabelConfigItem) error {
+	if pod.Labels == nil {
+		pod.Labels = map[string]string{}
+	}
+
 	if _, ok := pod.Labels[label.Name]; ok {
 		return nil
 	}
